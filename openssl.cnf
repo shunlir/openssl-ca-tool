@@ -3,10 +3,13 @@
 # This is mostly being used for generation of certificate requests.
 #
 
+ALTNAME=IP.1:127.0.0.1
+
 # This definition stops the following lines choking if HOME isn't
 # defined.
 HOME			= .
 RANDFILE		= $ENV::HOME/.rnd
+CATOP           = .
 
 # Extra OBJECT IDENTIFIER info:
 #oid_file		= $ENV::HOME/.oid
@@ -39,7 +42,7 @@ default_ca	= CA_default		# The default ca section
 ####################################################################
 [ CA_default ]
 
-dir		= /etc/pki/CA		# Where everything is kept
+dir		    = $ENV::CATOP		# Where everything is kept
 certs		= $dir/certs		# Where the issued certs are kept
 crl_dir		= $dir/crl		# Where the issued crl are kept
 database	= $dir/index.txt	# database index file.
@@ -63,7 +66,7 @@ name_opt 	= ca_default		# Subject Name options
 cert_opt 	= ca_default		# Certificate field options
 
 # Extension copying option: use with caution.
-# copy_extensions = copy
+copy_extensions = copy
 
 # Extensions to add to a CRL. Note: Netscape communicator chokes on V2 CRLs
 # so this is commented out by default to leave a V1 CRL.
@@ -350,3 +353,13 @@ tsa_name		= yes	# Must the TSA name be included in the reply?
 				# (optional, default: no)
 ess_cert_id_chain	= no	# Must the ESS cert id chain be included?
 				# (optional, default: no)
+
+# by shunlir:
+#[ v3_req_alt ]
+#
+## Extensions to add to a certificate request
+#
+#basicConstraints = CA:FALSE
+#keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+#
+#subjectAltName=$ENV::ALTNAME

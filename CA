@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # CA - wrapper around ca to make it easier to use ... basically ca requires
 #      some setup stuff to be done before you can use it and this makes
@@ -55,8 +55,10 @@ cp_pem() {
 }
 
 usage() {
- echo "usage: $0 -newcert|-newreq|-newreq-nodes|-newca|-sign|-verify" >&2
+ echo "usage: $0 -newcert|-newreq|-newreq-nodes|-newreq-nodes-alt|-newca|-sign|-verify" >&2
 }
+
+source $(dirname $0)/CA_settings
 
 if [ -z "$OPENSSL" ]; then OPENSSL=openssl; fi
 
@@ -95,9 +97,25 @@ case $1 in
     ;;
 -newreq-nodes) 
     # create a certificate request
-    $REQ -new -nodes -keyout newreq.pem -out newreq.pem $DAYS
+    $REQ -new -nodes -keyout newkey.pem -out newreq.pem $DAYS
     RET=$?
-    echo "Request (and private key) is in newreq.pem"
+    echo "Request is in newreq.pem, private key is in newkey.pem"
+    ;;
+-newreq-nodes-alt) 
+    # create a certificate request
+    if [ -z "$ALTNAMES" ]; then
+        echo -e "Please set ALTNAMES environment vairable for you CSR!\n  e.g: ALTNAMES=DNS:xxx,IP:xxx <cmd>"
+        RET=1
+    else
+        if [ ! -z "$SUBJ" ]; then SUBJ="-subj $SUBJ"; fi
+        ${REQ%$SSLEAY_CONFIG} -new -nodes -keyout newkey.pem -out newreq.pem $DAYS -reqexts v3_req_san \
+            -config <(cat $CONFIG_FILE \
+                    <(printf "\n[v3_req_san]\nsubjectAltName=$ALTNAMES")) \
+            $SUBJ
+        #$REQ -new -nodes -keyout newkey.pem -out newreq.pem $DAYS -reqexts v3_req_alt
+        RET=$?
+        echo "Request is in newreq.pem, private key is in newkey.pem"
+    fi
     ;;
 -newca)
     # if explicitly asked for or it doesn't exist then setup the directory
