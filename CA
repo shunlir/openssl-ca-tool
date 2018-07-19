@@ -155,6 +155,16 @@ case $1 in
 	fi
     fi
     ;;
+-revoke)
+    if [ -z "$2" ] ; then
+        usage
+        exit 0
+    else
+        $CA -revoke $2
+        RET=$?
+        shift
+    fi
+    ;;
 -xsign)
     $CA -policy policy_anything -infiles newreq.pem
     RET=$?
@@ -165,8 +175,14 @@ case $1 in
     else
 	CNAME="$2"
     fi
-    $PKCS12 -in newcert.pem -inkey newreq.pem -certfile ${CATOP}/$CACERT \
-	    -out newcert.p12 -export -name "$CNAME"
+    if [ -z "$3" ] ; then
+	CNAME="root"
+    else
+	CNAME="$3"
+    fi
+    $PKCS12 -export \
+            -in newcert.pem -inkey newreq.pem -CAfile ${CATOP}/$CACERT -chain \
+            -out newcert.p12 -name "$CNAME" -caname "$CANAME"
     RET=$?
     exit $RET
     ;;
