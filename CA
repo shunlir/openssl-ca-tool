@@ -181,7 +181,7 @@ case $1 in
 	CNAME="$3"
     fi
     $PKCS12 -export \
-            -in newcert.pem -inkey newreq.pem -CAfile ${CATOP}/$CACERT -chain \
+            -in newcert.pem -inkey newkey.pem -CAfile ${CATOP}/$CACERT -chain \
             -out newcert.p12 -name "$CNAME" -caname "$CANAME"
     RET=$?
     exit $RET
